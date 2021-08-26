@@ -13,9 +13,9 @@ adjusterOuterDiameter=35;
 adjusterScrew=15;
 adjusterScrewHole=16;
 adjusterMax=50;
-adjusterKnobDiameter=20;
+adjusterKnobDiameter=25;
 adjusterKnobHeight=20;
-tabletSecureStrength=5;
+tabletSecureStrength=3;
 tabletSecureHeight=7;
 
 halfTableWidth=tabletWidth / 2;
@@ -81,7 +81,7 @@ module WallHolder() {
 
 module Adjuster() {
     offsetY=adjusterOuterDiameter/2;
-    offsetZ=-fullTabletHolderHeight-tabletHolderStrength/2;
+    offsetZ= tabletHolderStrength/2-tabletHeight-tabletHolderStrength/2-adjusterOuterDiameter/2;
     
     module Screw(size, length, countersinkStyle) {
         translate([0, offsetY, offsetZ])
