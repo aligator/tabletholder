@@ -1,22 +1,33 @@
 wallThickness=200;
+
 tabletHeight=200;
 tabletWidth=250;
-tabletThickness=10;
-tabletHolderStrength=10;
-wallHolderArmsStrength=12;
+tabletThickness=20;
+tabletHolderStrength=8;
+
+tabletHolderHolesDiameter=50;
+tabletHolderHolesGap=10;
+
+tabletSecureStrength=4;
+tabletSecureHeight=7;
+
+wallHolderArmsStrength=7;
 wallHolderBackLength=100;
 wallHolderFrontLength=30;
-axelDiameter=9;
-axelOuterDiameter=12;
+
+axelDiameter=6;
+axelOuterDiameter=8;
 hingeGap=2;
-adjusterOuterDiameter=35;
-adjusterScrew=15;
-adjusterScrewHole=16;
+
+adjusterOuterDiameter=30;
+adjusterScrew=13;
+adjusterScrewHole=13.3;
 adjusterMax=50;
-adjusterKnobDiameter=25;
-adjusterKnobHeight=20;
-tabletSecureStrength=3;
-tabletSecureHeight=7;
+adjusterKnobDiameter=20;
+adjusterKnobHeight=5;
+
+renderAdjusterScrews=true;
+renderAdjuster=true;
 
 halfTableWidth=tabletWidth / 2;
 halfhingeGap=hingeGap / 2;
@@ -98,15 +109,19 @@ module Adjuster() {
             cube([tabletHolderStrength, adjusterOuterDiameter, adjusterOuterDiameter/2]);
     }
     
-    difference() {
-        Base();
-        Screw(adjusterScrewHole, tabletHolderStrength, -2);
+    if (renderAdjuster) {
+        difference() {
+            Base();
+            Screw(adjusterScrewHole, tabletHolderStrength, -2);
+        }
     }
     
-    Screw(adjusterScrew, tabletHolderStrength + adjusterMax, -1);
+    if (renderAdjusterScrews) {
+        Screw(adjusterScrew, tabletHolderStrength + adjusterMax, -1);
         translate([tabletHolderStrength+adjusterMax, offsetY, offsetZ])
             rotate([0, 90 ,0])
                 knurled_cyl( adjusterKnobHeight, adjusterKnobDiameter, 4, 4, 1, 2, 1);
+    }
 }
 
 module TabletHolder() {
@@ -128,7 +143,35 @@ module TabletHolder() {
             
              // The tablet holder plate.
             translate([tabletHolderXOffset, -halfTableWidth, tabletPlateZOffset])
-                cube([tabletHolderStrength, halfTableWidth, fullTabletHolderHeight]);
+                difference() {
+                    cube([tabletHolderStrength, halfTableWidth, fullTabletHolderHeight]);
+                    
+                    // Holes in the tablet plate to save plastic and make it lighter.
+                    
+                    holeOffset=tabletHolderHolesDiameter + tabletHolderHolesGap;
+                    allHolesOffset=tabletHolderHolesDiameter/2 + tabletHolderHolesGap;
+                    
+                    holeCountHorizontal=(halfTableWidth + tabletHolderHolesDiameter - tabletHolderHolesGap) / holeOffset;
+
+                    holeCountVertical=(fullTabletHolderHeight + tabletHolderHolesDiameter - tabletHolderHolesGap) / holeOffset;
+                    
+                    for(hNum=[0:holeCountHorizontal-1]) {
+                        for(vNum=[0:holeCountVertical-1]) {                        
+                            translate([-1, hNum * holeOffset + allHolesOffset, vNum *  holeOffset + allHolesOffset])
+                                rotate([0, 90, 0])
+                                    cylinder(h=tabletHolderStrength + 2, d=tabletHolderHolesDiameter);
+                        }
+                    }
+                    
+
+                };
+                
+            // Add a bar in the middle to always maintain a gap between the holes.
+            translate([tabletHolderXOffset, 0, tabletPlateZOffset])
+                cube([tabletHolderStrength, tabletHolderHolesGap/2, fullTabletHolderHeight]);
+            // Add a bar at the top to always maintain a gap between top and the holes.
+            translate([tabletHolderXOffset, 0, -tabletHolderHolesGap+axelOuterDiameter/2])
+                cube([tabletHolderStrength, halfTableWidth, tabletHolderHolesGap]);
             
             HingeRod();
         }
@@ -147,8 +190,6 @@ module TabletHolder() {
         }
         
         TabletSecure();
-        translate([tabletHolderXOffset, halfTableWidth-adjusterOuterDiameter, 0])
-            Adjuster();
     }
     
     
@@ -157,6 +198,12 @@ module TabletHolder() {
         TabletHolderHalf();
     }
     TabletHolderHalf();
+    
+    // Do not mirror them, as the screws should not be mirrored.
+    translate([tabletHolderXOffset, halfTableWidth-adjusterOuterDiameter, 0])
+        Adjuster();
+    translate([tabletHolderXOffset, -halfTableWidth, 0])
+        Adjuster();
 }
 
 WallHolder();
