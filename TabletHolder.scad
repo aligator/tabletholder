@@ -5,18 +5,18 @@ tabletWidth=250;
 tabletThickness=20;
 tabletHolderStrength=10;
 
-tabletHolderHolesDiameter=50;
+tabletHolderHolesDiameter=40;
 tabletHolderHolesGap=10;
 
 tabletSecureStrength=4;
 tabletSecureHeight=7;
 
-wallHolderArmsStrength=7;
+wallHolderArmsStrength=11;
 wallHolderBackLength=100;
 wallHolderFrontLength=30;
 
-axelDiameter=6;
-axelOuterDiameter=8;
+axelDiameter=8.2;
+axelOuterDiameter=11;
 hingeGap=2;
 
 adjusterOuterDiameter=30;
@@ -27,7 +27,7 @@ adjusterKnobDiameter=20;
 adjusterKnobHeight=5;
 
 splitWidth=100;
-splitRodSize=8.3;
+splitRodDiameter=8.2;
 
 renderAdjusterScrews=true;
 renderAdjuster=true;
@@ -78,13 +78,27 @@ module WallHolder() {
     }
     
     module WallHolderHalf() {
-        translate([0, halfTableWidth+halfhingeGap, 0])
-            WallArm();
-        
-        cube([wallHolderArmsStrength, halfTableWidth+halfhingeGap, wallHolderArmsStrength]);
-        
-        translate([wallThickness-hingeGap, 0, 0])
-            cube([wallHolderArmsStrength, halfTableWidth+halfhingeGap, wallHolderArmsStrength]);
+        difference() {
+            union() {
+                translate([0, halfTableWidth+halfhingeGap, 0])
+                    WallArm();
+                
+                cube([wallHolderArmsStrength, halfTableWidth+halfhingeGap, wallHolderArmsStrength]);
+                
+                translate([wallThickness-hingeGap, 0, 0])
+                    cube([wallHolderArmsStrength, halfTableWidth+halfhingeGap, wallHolderArmsStrength]);
+            }
+            
+            // Holes for threaded rods if splitted:
+            if (splitWidth > 0) {
+                translate([wallHolderArmsStrength/2, halfTableWidth + wallHolderArmsStrength + halfhingeGap + 1, wallHolderArmsStrength/2])
+                    rotate([90, 0, 0])
+                        cylinder(h=halfTableWidth + wallHolderArmsStrength + halfhingeGap + 2, d=splitRodDiameter, center=false);
+                translate([wallThickness-hingeGap + wallHolderArmsStrength/2, halfTableWidth + wallHolderArmsStrength + halfhingeGap + 1, wallHolderArmsStrength/2])
+                    rotate([90, 0, 0])
+                        cylinder(h=halfTableWidth + wallHolderArmsStrength + halfhingeGap + 2, d=splitRodDiameter, center=false);
+            }
+        }
     }
     
     mirror([0, 1, 0]) {
@@ -144,31 +158,34 @@ module TabletHolder() {
                         cylinder(h=halfTableWidth+2+tabletHolderHolesGap, d=axelDiameter, center=false);
         }
     
+        // Some helper variables for the holes.
+        holeOffset=tabletHolderHolesDiameter + tabletHolderHolesGap;
+        allHolesOffset=tabletHolderHolesDiameter/2 + tabletHolderHolesGap;
+        
+        holeCountHorizontal=(halfTableWidth + tabletHolderHolesDiameter - tabletHolderHolesGap) / holeOffset;
+
+        holeCountVertical=(fullTabletHolderHeight + tabletHolderHolesDiameter - tabletHolderHolesGap) / holeOffset;
+        
+        module SplitRods() {
+            // If splitted, add holes in between for threaded rods.
+            if (splitWidth > 0) {
+                for(vNum=[0:holeCountVertical-2]) {                        
+                    translate([tabletHolderStrength/2, 1+halfTableWidth, vNum *  holeOffset + tabletHolderHolesDiameter + tabletHolderHolesGap + tabletHolderHolesGap/2])
+                        rotate([90, 0, 0])
+                            cylinder(h=halfTableWidth + 2, d=splitRodDiameter, center=false);
+                }
+            }
+        }
+        
         module TabletPlate() {
             
              // The tablet holder plate.
             translate([tabletHolderXOffset, -halfTableWidth, tabletPlateZOffset])
                 difference() {
-                    union() {
-                        cube([tabletHolderStrength, halfTableWidth, fullTabletHolderHeight]);
-                        // Add a bar in the middle to always maintain a gap between the holes also in the middle
-                        // where the two halves are combined.
-                        translate([tabletHolderXOffset, -tabletHolderHolesGap/2, tabletPlateZOffset])
-                            cube([tabletHolderStrength, tabletHolderHolesGap/2, fullTabletHolderHeight]);
-                            
-                         // Add a bar at the top to always maintain a gap between top and the holes.
-                        translate([tabletHolderXOffset, -halfTableWidth, -tabletHolderHolesGap+axelOuterDiameter/2])
-                            cube([tabletHolderStrength, halfTableWidth, tabletHolderHolesGap]);
-                    }
-                    
-                    // Holes in the tablet plate to save plastic and make it lighter.
-                    
-                    holeOffset=tabletHolderHolesDiameter + tabletHolderHolesGap;
-                    allHolesOffset=tabletHolderHolesDiameter/2 + tabletHolderHolesGap;
-                    
-                    holeCountHorizontal=(halfTableWidth + tabletHolderHolesDiameter - tabletHolderHolesGap) / holeOffset;
+                    cube([tabletHolderStrength, halfTableWidth, fullTabletHolderHeight]);
 
-                    holeCountVertical=(fullTabletHolderHeight + tabletHolderHolesDiameter - tabletHolderHolesGap) / holeOffset;
+                    // Holes in the tablet plate to save plastic and make it lighter.
+                   
                     
                     for(hNum=[0:holeCountHorizontal-1]) {
                         for(vNum=[0:holeCountVertical-1]) {                        
@@ -177,21 +194,21 @@ module TabletHolder() {
                                     cylinder(h=tabletHolderStrength + 2, d=tabletHolderHolesDiameter);
                         }
                     }
-                    
-                    
-                    // If splitted, add holes in between for threaded rods.
-                    if (splitWidth > 0) {
-                        for(vNum=[0:holeCountVertical-2]) {                        
-                            translate([tabletHolderStrength/2, 1+halfTableWidth, vNum *  holeOffset + tabletHolderHolesDiameter + tabletHolderHolesGap + tabletHolderHolesGap/2])
-                                rotate([90, 0, 0])
-                                    cylinder(h=halfTableWidth + 2, d=splitRodSize, center=false);
-                        }
-                    }
-                    
+                    SplitRods();
                 };
             
-            
-
+             translate([tabletHolderXOffset, -tabletHolderHolesGap/2, tabletPlateZOffset])
+                 difference() {
+                    // Add a bar in the middle to always maintain a gap between the holes also in the middle
+                    // where the two halves are combined.
+                        cube([tabletHolderStrength, tabletHolderHolesGap/2, fullTabletHolderHeight]);
+                    SplitRods();
+                 };
+             
+             // Add a bar at the top to always maintain a gap between top and the holes.
+            translate([tabletHolderXOffset, -halfTableWidth, -tabletHolderHolesGap+axelOuterDiameter/2])
+                cube([tabletHolderStrength, halfTableWidth, tabletHolderHolesGap]);
+                
             HingeRod();
         }
         
