@@ -135,8 +135,8 @@ module TabletHolder() {
         module HingeRodHole() {
             translate([wallHolderArmsStrength / 2, 0, wallHolderArmsStrength / 2])
                 rotate([90, 0, 0])
-                    translate([0, 0, -1])
-                        cylinder(h=halfTableWidth+2, d=axelDiameter, center=false);
+                    translate([0, 0, -1 - tabletHolderHolesGap])
+                        cylinder(h=halfTableWidth+2+tabletHolderHolesGap, d=axelDiameter, center=false);
         }
     
         module TabletPlate() {
@@ -163,13 +163,16 @@ module TabletHolder() {
                         }
                     }
                 };
-                
+            
             // Add a bar in the middle to always maintain a gap between the holes.
             translate([tabletHolderXOffset, 0, tabletPlateZOffset])
                 cube([tabletHolderStrength, tabletHolderHolesGap/2, fullTabletHolderHeight]);
-            // Add a bar at the top to always maintain a gap between top and the holes.
-            translate([tabletHolderXOffset, 0, -tabletHolderHolesGap+axelOuterDiameter/2])
+                
+             // Add a bar at the top to always maintain a gap between top and the holes.
+            translate([tabletHolderXOffset, -halfTableWidth, -tabletHolderHolesGap+axelOuterDiameter/2])
                 cube([tabletHolderStrength, halfTableWidth, tabletHolderHolesGap]);
+
+           
 
             HingeRod();
         }
