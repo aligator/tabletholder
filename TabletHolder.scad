@@ -3,7 +3,7 @@ wallThickness=200;
 tabletHeight=200;
 tabletWidth=250;
 tabletThickness=20;
-tabletHolderStrength=8;
+tabletHolderStrength=10;
 
 tabletHolderHolesDiameter=50;
 tabletHolderHolesGap=10;
@@ -25,6 +25,9 @@ adjusterScrewHole=13.3;
 adjusterMax=50;
 adjusterKnobDiameter=20;
 adjusterKnobHeight=5;
+
+splitWidth=100;
+splitRodSize=8.3;
 
 renderAdjusterScrews=true;
 renderAdjuster=true;
@@ -85,8 +88,10 @@ module WallHolder() {
     }
     
     mirror([0, 1, 0]) {
-        WallHolderHalf();
+        translate([0, splitWidth, 0])
+            WallHolderHalf();
     }
+        
     WallHolderHalf();
 }
 
@@ -144,7 +149,17 @@ module TabletHolder() {
              // The tablet holder plate.
             translate([tabletHolderXOffset, -halfTableWidth, tabletPlateZOffset])
                 difference() {
-                    cube([tabletHolderStrength, halfTableWidth, fullTabletHolderHeight]);
+                    union() {
+                        cube([tabletHolderStrength, halfTableWidth, fullTabletHolderHeight]);
+                        // Add a bar in the middle to always maintain a gap between the holes also in the middle
+                        // where the two halves are combined.
+                        translate([tabletHolderXOffset, -tabletHolderHolesGap/2, tabletPlateZOffset])
+                            cube([tabletHolderStrength, tabletHolderHolesGap/2, fullTabletHolderHeight]);
+                            
+                         // Add a bar at the top to always maintain a gap between top and the holes.
+                        translate([tabletHolderXOffset, -halfTableWidth, -tabletHolderHolesGap+axelOuterDiameter/2])
+                            cube([tabletHolderStrength, halfTableWidth, tabletHolderHolesGap]);
+                    }
                     
                     // Holes in the tablet plate to save plastic and make it lighter.
                     
@@ -162,17 +177,20 @@ module TabletHolder() {
                                     cylinder(h=tabletHolderStrength + 2, d=tabletHolderHolesDiameter);
                         }
                     }
+                    
+                    
+                    // If splitted, add holes in between for threaded rods.
+                    if (splitWidth > 0) {
+                        for(vNum=[0:holeCountVertical-2]) {                        
+                            translate([tabletHolderStrength/2, 1+halfTableWidth, vNum *  holeOffset + tabletHolderHolesDiameter + tabletHolderHolesGap + tabletHolderHolesGap/2])
+                                rotate([90, 0, 0])
+                                    cylinder(h=halfTableWidth + 2, d=splitRodSize, center=false);
+                        }
+                    }
+                    
                 };
             
-            // Add a bar in the middle to always maintain a gap between the holes.
-            translate([tabletHolderXOffset, 0, tabletPlateZOffset])
-                cube([tabletHolderStrength, tabletHolderHolesGap/2, fullTabletHolderHeight]);
-                
-             // Add a bar at the top to always maintain a gap between top and the holes.
-            translate([tabletHolderXOffset, -halfTableWidth, -tabletHolderHolesGap+axelOuterDiameter/2])
-                cube([tabletHolderStrength, halfTableWidth, tabletHolderHolesGap]);
-
-           
+            
 
             HingeRod();
         }
@@ -184,7 +202,6 @@ module TabletHolder() {
                 cube([tabletSecureStrength, halfTableWidth, tabletSecureHeight]);
         }
         
-        
         difference() {
             TabletPlate();
             HingeRodHole();
@@ -192,18 +209,17 @@ module TabletHolder() {
         
         TabletSecure();
     }
-    
-    
 
     mirror([0, 1, 0]) {
         TabletHolderHalf();
     }
-    TabletHolderHalf();
+    translate([0, -splitWidth, 0])
+        TabletHolderHalf();   
     
     // Do not mirror them, as the screws should not be mirrored.
     translate([tabletHolderXOffset, halfTableWidth-adjusterOuterDiameter, 0])
         Adjuster();
-    translate([tabletHolderXOffset, -halfTableWidth, 0])
+    translate([tabletHolderXOffset, -halfTableWidth - splitWidth, 0])
         Adjuster();
 }
 
