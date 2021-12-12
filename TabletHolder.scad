@@ -5,7 +5,7 @@ renderWallHolder=true;
 
 // Diameter of the axel. It has to match the threaded rod you want to put through.
 // It should be smaller than wallHolderArmsStrength.
-axelDiameter=8.2;
+axelDiameter=4.2;
 // Defines the size of a small gap between the tablet holder and the wall holder.
 hingeGap=2;
 
@@ -17,17 +17,17 @@ splitRodDiameter=axelDiameter;
 splitWidth=split ? 10 : 0;
 
 // Thickness of the wall, the tabletholder hangs over.
-wallThickness=200;
+wallThickness=135;
 // Height of the tablet itself.
 tabletHeight=200;
 
 // Width of the tablet itself. 
 // Note: The total width of the tabletholder consits of tabletWidth + (2 * hingeGap) + (2 * wallHolderArmsStrength)
-tabletWidth=250;
+tabletWidth=257;
 // This has to be at least the thickness of the tablet itself.
 tabletThickness=20;
 // Thickness of the tablet holder backplate.
-tabletHolderStrength=10;
+tabletHolderStrength=8;
 
 
 // Defines the size of the holes in the backplate (for less plastic usage).
@@ -36,12 +36,12 @@ tabletHolderHolesDiameter=30;
 tabletHolderHolesGap=10;
 
 // Defines the thickness of the part at the bottom where the tablet lays.
-tabletSecureStrength=4;
+tabletSecureStrength=10;
 // Defines the height of the front which stops the tablet.
 tabletSecureHeight=7;
 
 // Thickness of the wall holder arms.
-wallHolderArmsStrength=11;
+wallHolderArmsStrength=10;
 // Length of the arms at the back.
 wallHolderBackLength=70;
 // Length of the arms at the front.
