@@ -1,36 +1,65 @@
-wallThickness=200;
+// Note: screw rendering is slow. So disable it when experimenting.
+renderAdjusterScrews=true;
+renderTabletHolder=true;
+renderWallHolder=true;
 
-tabletHeight=200;
-tabletWidth=250;
-tabletThickness=20;
-tabletHolderStrength=10;
-
-tabletHolderHolesDiameter=40;
-tabletHolderHolesGap=10;
-
-tabletSecureStrength=4;
-tabletSecureHeight=7;
-
-wallHolderArmsStrength=11;
-wallHolderBackLength=100;
-wallHolderFrontLength=30;
-
+// Diameter of the axel. It has to match the threaded rod you want to put through.
+// It should be smaller than wallHolderArmsStrength.
 axelDiameter=8.2;
-axelOuterDiameter=11;
+// Defines the size of a small gap between the tablet holder and the wall holder.
 hingeGap=2;
 
-adjusterOuterDiameter=30;
+// You can split the model if your printer is not big enough.
+// If it is splitted, new holes are added where you can screw the parts together
+// with additional threaded rods.
+split=false;
+splitRodDiameter=axelDiameter;
+splitWidth=split ? 10 : 0;
+
+// Thickness of the wall, the tabletholder hangs over.
+wallThickness=200;
+// Height of the tablet itself.
+tabletHeight=200;
+
+// Width of the tablet itself. 
+// Note: The total width of the tabletholder consits of tabletWidth + (2 * hingeGap) + (2 * wallHolderArmsStrength)
+tabletWidth=250;
+// This has to be at least the thickness of the tablet itself.
+tabletThickness=20;
+// Thickness of the tablet holder backplate.
+tabletHolderStrength=10;
+
+
+// Defines the size of the holes in the backplate (for less plastic usage).
+tabletHolderHolesDiameter=30;
+// Gap between the holes in the backplate.
+tabletHolderHolesGap=10;
+
+// Defines the thickness of the part at the bottom where the tablet lays.
+tabletSecureStrength=4;
+// Defines the height of the front which stops the tablet.
+tabletSecureHeight=7;
+
+// Thickness of the wall holder arms.
+wallHolderArmsStrength=11;
+// Length of the arms at the back.
+wallHolderBackLength=70;
+// Length of the arms at the front.
+wallHolderFrontLength=70;
+
+// Adjuster screw diameter.
 adjusterScrew=13;
+// Adjuster screw hole diameter. (Should be a bit bigger than the screw).
+// You may have to experiment a bit with this.
 adjusterScrewHole=13.3;
-adjusterMax=50;
-adjusterKnobDiameter=20;
-adjusterKnobHeight=5;
+// Length of the adjuster screw.
+adjusterMax=80;
 
-splitWidth=100;
-splitRodDiameter=8.2;
+adjusterKnobDiameter=adjusterScrew / 100 * 150;
+adjusterKnobHeight=adjusterScrew / 100 * 50;
+adjusterOuterDiameter=adjusterScrew + 10;
 
-renderAdjusterScrews=true;
-renderAdjuster=true;
+axelOuterDiameter=wallHolderArmsStrength;
 
 halfTableWidth=tabletWidth / 2;
 halfhingeGap=hingeGap / 2;
@@ -90,7 +119,7 @@ module WallHolder() {
             }
             
             // Holes for threaded rods if splitted:
-            if (splitWidth > 0) {
+            if (split) {
                 translate([wallHolderArmsStrength/2, halfTableWidth + wallHolderArmsStrength + halfhingeGap + 1, wallHolderArmsStrength/2])
                     rotate([90, 0, 0])
                         cylinder(h=halfTableWidth + wallHolderArmsStrength + halfhingeGap + 2, d=splitRodDiameter, center=false);
@@ -101,12 +130,14 @@ module WallHolder() {
         }
     }
     
-    mirror([0, 1, 0]) {
-        translate([0, splitWidth, 0])
-            WallHolderHalf();
+    if (renderWallHolder) {
+        mirror([0, 1, 0]) {
+            translate([0, splitWidth, 0])
+                WallHolderHalf();
+        }
+            
+        WallHolderHalf();
     }
-        
-    WallHolderHalf();
 }
 
 module Adjuster() {
@@ -128,7 +159,7 @@ module Adjuster() {
             cube([tabletHolderStrength, adjusterOuterDiameter, adjusterOuterDiameter/2]);
     }
     
-    if (renderAdjuster) {
+    if (renderTabletHolder) {
         difference() {
             Base();
             Screw(adjusterScrewHole, tabletHolderStrength, -2);
@@ -168,7 +199,7 @@ module TabletHolder() {
         
         module SplitRods() {
             // If splitted, add holes in between for threaded rods.
-            if (splitWidth > 0) {
+            if (split) {
                 for(vNum=[0:holeCountVertical-2]) {                        
                     translate([tabletHolderStrength/2, 1+halfTableWidth, vNum *  holeOffset + tabletHolderHolesDiameter + tabletHolderHolesGap + tabletHolderHolesGap/2])
                         rotate([90, 0, 0])
@@ -227,11 +258,13 @@ module TabletHolder() {
         TabletSecure();
     }
 
-    mirror([0, 1, 0]) {
-        TabletHolderHalf();
+    if (renderTabletHolder) {    
+        mirror([0, 1, 0]) {
+            TabletHolderHalf();
+        }
+        translate([0, -splitWidth, 0])
+            TabletHolderHalf();   
     }
-    translate([0, -splitWidth, 0])
-        TabletHolderHalf();   
     
     // Do not mirror them, as the screws should not be mirrored.
     translate([tabletHolderXOffset, halfTableWidth-adjusterOuterDiameter, 0])
